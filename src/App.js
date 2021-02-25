@@ -1,25 +1,51 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default function App() {
+	const [results, setResults] = useState([]);
+  const [query, setQuery] = useState('react hooks');
+	const searchInputRef = useRef();
+
+	useEffect(() => {
+		getResults();
+	}, []);
+
+  const getResults = async () => {
+    const response = await axios.get(
+      `http://hn.algolia.com/api/v1/search?query=${query}`
+    );
+     setResults(response.data.hits);
+  }
+
+	const handleSearch = event => {
+		event.preventDefault();
+		getResults();
+	}
+
+	const handleClearSearch = event => {
+		setQuery("");
+		searchInputRef.current.focus();
+	}
+
+	return (	
+		<>
+			<form onSubmit={handleSearch}>
+				<input 
+					type="text"
+					onChange={event => setQuery(event.target.value)}
+					value={query}
+					ref={searchInputRef}
+				/>
+				<button type="submit">Search</button>
+				<button type="button" onClick={handleClearSearch}>Clear</button>
+			</form>
+			<ul>
+				{results.map((result) => (
+					<li key={result.objectID}>
+						<a href={result.url}>{result.title}</a>
+					</li>
+				))}
+			</ul>
+		</>
+	);
 }
-
-export default App;
